@@ -28,6 +28,11 @@
         </receiver>
 
         <service android:name="com.scotttherobot.hater.app.GcmIntentService" />
+
+        <activity
+            android:name="com.scotttherobot.hater.app.LoginActivity"
+            android:label="@string/title_activity_login" >
+        </activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -35,6 +40,8 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+
 
     <permission
         android:name="com.scotttherobot.gcm.permission.C2D_MESSAGE"

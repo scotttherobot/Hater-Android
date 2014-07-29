@@ -1,6 +1,7 @@
 package com.scotttherobot.hater.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -11,35 +12,118 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class EnemiesActivity extends ActionBarActivity {
 
-    Button regButton;
-    TextView regLabel;
+    ListView enemiesListView;
+    ArrayList<Enemy> enemiesList = new ArrayList<Enemy>();
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     String SENDER_ID = "957490803190";
     private static GoogleCloudMessaging gcm;
+
+    static final int LOGIN_INTENT = 0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enemies);
+        this.enemiesListView = (ListView) findViewById(R.id.enemiesListView);
 
-        this.regButton = (Button) findViewById(R.id.regButton);
-        this.regLabel = (TextView) findViewById(R.id.regLabel);
+        // And we need to tell the API where we are so it can do stuff like settings.
+        ApiClient.setContext(getApplicationContext());
+
+        // Look to see if we're logged in. If we're not, launch the login modal.
+
+
+        if (!ApiClient.getCredentials()) {
+            // We're logged out.
+            Intent loginIntent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivityForResult(loginIntent, LOGIN_INTENT);
+        } else {
+            ApiClient.loginWithSavedCredentials(new ApiClient.loginHandler() {
+                @Override
+                public void onLogin(JSONObject response) {
+                    registerForPushNotifications();
+                    getEnemiesList();
+                }
+
+                @Override
+                public void onFailure(JSONObject response) {
+                    Log.i("Enemies", "There was an error");
+                }
+            });
+        }
+
     }
 
-    public void registrationClicked(View v) {
-        registerForPushNotifications();
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case LOGIN_INTENT:
+                registerForPushNotifications();
+                getEnemiesList();
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void getEnemiesList() {
+        ApiClient.get("enemies", null, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                Log.i("Enemies", "Got the roster " + response.toString());
+                enemiesList.clear();
+                enemiesList.addAll(Enemy.fromJson(response));
+                addDataToList();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable t) {
+                Log.i("ENEMIES", "There was an error " + responseString);
+            }
+        });
+    }
+
+    public void addDataToList() {
+        EnemiesListAdapter ela = new EnemiesListAdapter(this, enemiesList);
+        ListAdapter la = ela;
+        enemiesListView.setAdapter(la);
+        enemiesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Enemy enemy = enemiesList.get(+position);
+                RequestParams p = new RequestParams();
+                p.put("target_user", enemy.id);
+                p.put("insult_id", 1);
+                ApiClient.post("hate", p, new JsonHttpResponseHandler() {
+                    public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                        toast(response.toString());
+                    }
+                });
+            }
+        });
+    }
+
+    private void toast(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
 
@@ -63,6 +147,7 @@ public class EnemiesActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
     public void registerForPushNotifications() {
         Log.v("ENEMIES", "Attempting to register for push");
 
@@ -75,17 +160,24 @@ public class EnemiesActivity extends ActionBarActivity {
         if (regid.isEmpty()) {
             new RegisterBackground().execute();
         } else {
-            regLabel.setText("saved: " + regid);
         }
     }
 
     private void handleNewGCMId(String token) {
-        // In the future this will upload the token to the API
-        // For now, it logs it and saves it.
+        // This handles when a *new* gcm token is acquired.
+        // This way, we only upload it once.
         Log.v("ENEMIES", "GCM TOKEN is " + token);
         if (!token.isEmpty()) {
             storeRegistrationId(getApplicationContext(), token);
-            this.regLabel.setText(token);
+            RequestParams p = new RequestParams();
+            p.put("device_type", "ANDROID");
+            p.put("token", token);
+            ApiClient.post("devices", p, new JsonHttpResponseHandler() {
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    toast(response.toString());
+                }
+            });
+
         } else {
             Log.e("ENEMIES", "handleNewGCMId Token Empty!");
         }

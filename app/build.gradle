@@ -20,6 +20,8 @@ android {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:+'
+    compile 'com.loopj.android:android-async-http:1.4.5'
     compile "com.google.android.gms:play-services:3.1.+"
+    
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
