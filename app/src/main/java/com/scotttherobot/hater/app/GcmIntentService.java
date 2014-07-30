@@ -54,7 +54,7 @@ public class GcmIntentService extends IntentService {
                     String title = extras.getString("title");
                     String message = extras.getString("message");
 
-                    showToast(title + " " + message);
+                    //showToast(title + " " + message);
                     sendNotification(title, message);
                 } catch (Exception e) {
                     Log.i("GCM", "Exception trying to get bundle extras");

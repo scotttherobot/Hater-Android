@@ -119,6 +119,13 @@ public class ApiClient {
         editor.clear();
         editor.commit();
     }
+
+    public static void logout() {
+        globalUsername = null;
+        globalPassword = null;
+        SESSION = null;
+        userId = null;
+    }
     public static Boolean getCredentials () {
         Log.v("API", "Getting saved creds");
         SharedPreferences pref = appContext.getSharedPreferences("h8r", Context.MODE_PRIVATE);

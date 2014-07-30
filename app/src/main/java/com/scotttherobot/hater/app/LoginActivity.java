@@ -1,5 +1,6 @@
 package com.scotttherobot.hater.app;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -15,6 +16,9 @@ public class LoginActivity extends ActionBarActivity {
 
     EditText usernameField;
     EditText passwordField;
+
+    static final int REGISTER_INTENT = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +67,22 @@ public class LoginActivity extends ActionBarActivity {
             }
         });
     }
+
+    public void registerButtonPressed(View v) {
+        Intent registerIntent = new Intent(getApplicationContext(), RegisterActivity.class);
+        startActivityForResult(registerIntent, REGISTER_INTENT);
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REGISTER_INTENT:
+
+                break;
+            default:
+                break;
+        }
+    }
+
 
     private void toast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();

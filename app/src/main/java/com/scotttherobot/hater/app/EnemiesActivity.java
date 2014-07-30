@@ -68,6 +68,7 @@ public class EnemiesActivity extends ActionBarActivity {
                 @Override
                 public void onFailure(JSONObject response) {
                     Log.i("Enemies", "There was an error");
+                    toast(response.toString());
                 }
             });
         }
@@ -98,6 +99,7 @@ public class EnemiesActivity extends ActionBarActivity {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable t) {
                 Log.i("ENEMIES", "There was an error " + responseString);
+                toast(responseString);
             }
         });
     }
@@ -140,11 +142,23 @@ public class EnemiesActivity extends ActionBarActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.settingsButton:
+                Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(settingsIntent);
+                return true;
+            case R.id.refreshButton:
+                getEnemiesList();
+                return true;
+            case R.id.logoutButton:
+                ApiClient.clearCredentials();
+                ApiClient.logout();
+                clearRegistrationId(getApplicationContext());
+                toast("Credentials cleared");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
 
@@ -224,6 +238,15 @@ public class EnemiesActivity extends ActionBarActivity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
+        editor.commit();
+    }
+
+    private void clearRegistrationId(Context context) {
+        final SharedPreferences prefs = getGCMPreferences(context);
+        int appVersion = getAppVersion(context);
+        Log.i("ENEMIES", "Clearing regId on app version " + appVersion);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.clear();
         editor.commit();
     }
 
