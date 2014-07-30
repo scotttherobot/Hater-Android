@@ -1,6 +1,8 @@
 package com.scotttherobot.hater.app;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -13,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -55,8 +58,7 @@ public class EnemiesActivity extends ActionBarActivity {
 
         if (!ApiClient.getCredentials()) {
             // We're logged out.
-            Intent loginIntent = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivityForResult(loginIntent, LOGIN_INTENT);
+            showLogin();
         } else {
             ApiClient.loginWithSavedCredentials(new ApiClient.loginHandler() {
                 @Override
@@ -73,6 +75,12 @@ public class EnemiesActivity extends ActionBarActivity {
             });
         }
 
+    }
+
+    protected void showLogin() {
+        // We're logged out.
+        Intent loginIntent = new Intent(getApplicationContext(), LoginActivity.class);
+        startActivityForResult(loginIntent, LOGIN_INTENT);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -155,12 +163,73 @@ public class EnemiesActivity extends ActionBarActivity {
                 ApiClient.logout();
                 clearRegistrationId(getApplicationContext());
                 toast("Credentials cleared");
+                showLogin();
+                return true;
+            case R.id.addEnemyButton:
+                addEnemy();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    public void addEnemy() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Add Enemy");
+        final EditText input = new EditText(this);
+        input.setHint("username");
+        alert.setView(input);
+        alert.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                String name = input.getText().toString();
+                if (name.trim().isEmpty()) {
+                    showAlert("Error", "You must provide a username.");
+                    return;
+                }
+                addEnemyByUsername(name);
+            }
+        });
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        alert.show();
+    }
+
+    public void addEnemyByUsername(String username) {
+        RequestParams rp = new RequestParams();
+        rp.add("username", username);
+        ApiClient.post("enemies", rp, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                // At this point I don't even care what the response is.
+                toast("User added!");
+                getEnemiesList();
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable t) {
+                toast("Error: " + responseString);
+            }
+        });
+    }
+
+    public void showAlert(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setTitle(title)
+                .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
     public void registerForPushNotifications() {
         Log.v("ENEMIES", "Attempting to register for push");

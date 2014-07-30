@@ -17,4 +17,9 @@
         android:title="logout/clear creds"
         android:orderInCategory="100"
         app:showAsAction="never" />
+
+    <item android:id="@+id/addEnemyButton"
+        android:title="Add Enemy"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
 </menu>

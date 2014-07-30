@@ -1,5 +1,7 @@
 package com.scotttherobot.hater.app;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -76,11 +78,29 @@ public class LoginActivity extends ActionBarActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REGISTER_INTENT:
-
+                String username = data.getStringExtra("username");
+                String password = data.getStringExtra("password");
+                usernameField.setText(username);
+                passwordField.setText(password);
+                showAlert("Success!", "You've made your account. Now let's sign in.");
                 break;
             default:
                 break;
         }
+    }
+
+    public void showAlert(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setTitle(title)
+                .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
 
