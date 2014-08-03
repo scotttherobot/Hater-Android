@@ -151,10 +151,6 @@ public class EnemiesActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.settingsButton:
-                Intent settingsIntent = new Intent(getApplicationContext(), SettingsActivity.class);
-                startActivity(settingsIntent);
-                return true;
             case R.id.refreshButton:
                 getEnemiesList();
                 return true;

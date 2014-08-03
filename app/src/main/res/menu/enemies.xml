@@ -2,11 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.scotttherobot.hater.app.EnemiesActivity" >
-    
-    <item android:id="@+id/settingsButton"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
 
     <item android:id="@+id/refreshButton"
         android:title="@string/refresh"
@@ -14,7 +9,7 @@
         app:showAsAction="never" />
 
     <item android:id="@+id/logoutButton"
-        android:title="logout/clear creds"
+        android:title="logout"
         android:orderInCategory="100"
         app:showAsAction="never" />
 
